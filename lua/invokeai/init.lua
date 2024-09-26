@@ -1,14 +1,8 @@
--- local function prequire(...)
---   local status, lib = pcall(require, ...)
---   if (status) then return lib end
---   --Library failed to load, so perhaps return `nil` or something?
---   return nil
--- end
 local curl = require("plenary.curl")
 local utils = require("invokeai.utils")
 local windows = require("invokeai.windows")
 local context = require("invokeai.context")
-local key = ""
+local config = require("invokeai.config")
 -- local lol = prequire("pepe")
 -- if lol == nil then
 --   print("Pepe no esta presente")
@@ -43,12 +37,12 @@ local function get_payload(data, _context)
 end
 
 ---Creates a table of HTTP headers.
---- @return Table; table containing the HTTP headers.
+--- @return table; table containing the HTTP headers.
 local function get_headers()
   return {
     ["Content-Type"] = "application/json",
     ["Authorization"] =
-        "Bearer " .. key
+        "Bearer " .. config.key
   }
 end
 
@@ -121,13 +115,9 @@ invokeai.debug = function()
   vim.api.nvim_feedkeys("40" .. window_key .. ">", 'n', false)
 end
 
-invokeai.setup = function(opts)
-  if opts == nil then
-    opts = {}
-  end
-  if opts.key_fn ~= nil then
-    key = opts.key_fn()
-  end
+---@param opts InvokeAiOpts
+function invokeai.setup(opts)
+  config.setup(opts)
 end
 
 invokeai.reset = function()
@@ -163,7 +153,7 @@ invokeai.pre_prompt = function(prompt, options)
   local code = table.concat(_context.original_lines, "\n")
   print("CODE", code)
   local data = get_prompt(prompt, code, _context.filetype)
-  local payload = get_payload(data, _context.filetype)
+  local payload = get_payload(data, _context)
   send(payload, _context)
 end
 
