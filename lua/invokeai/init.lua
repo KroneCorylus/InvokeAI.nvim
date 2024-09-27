@@ -33,7 +33,7 @@ function invokeai.setup(opts)
   config.setup(opts)
 end
 
-invokeai.reset = function()
+function invokeai.reset()
   local info = debug.getinfo(1, "S").source
   local file_path = info:sub(2) -- Remove the "@" character at the start
   local file_dir = file_path:match("(.*/)")
@@ -58,18 +58,16 @@ invokeai.reset = function()
   end
 end
 
-invokeai.pre_prompt = function(prompt, options)
+function invokeai.pre_prompt(prompt, options)
   local _context = context.new(vim.api.nvim_get_current_buf(), options)
   _context.original_lines, _context.start_row, _context.end_row = utils.get_visual_selection()
-  print("original_lines")
   local code = table.concat(_context.original_lines, "\n")
-  print("CODE", code)
   local data = get_prompt(prompt, code, _context.filetype)
   local payload = openai.get_payload(data, _context)
   openai.send(payload, _context)
 end
 
-invokeai.popup = function(options)
+function invokeai.popup(options)
   local _context = context.new(vim.api.nvim_get_current_buf(), options)
   _context.original_lines, _context.start_row, _context.end_row = utils.get_visual_selection()
 
