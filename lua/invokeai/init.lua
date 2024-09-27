@@ -55,13 +55,6 @@ end
 
 local invokeai = {}
 
-invokeai.debug = function()
-  vim.cmd("Bmessagesvs")
-  local window_key = vim.api.nvim_replace_termcodes('<C-w>', true, false, true)
-  vim.api.nvim_feedkeys(window_key .. "x", 'n', false)
-  vim.api.nvim_feedkeys("40" .. window_key .. ">", 'n', false)
-end
-
 ---@param opts InvokeAiOpts
 function invokeai.setup(opts)
   config.setup(opts)
