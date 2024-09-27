@@ -1,9 +1,11 @@
 local config = {}
 
+
+
 ---@class InvokeAiOpts
 ---@field key_fn? fun():string Function to retrieve the API Key
 ---@field key? string|nil API Key
-
+---@field provider_opts? table A table of options to pass to the AI provider setup,
 ---@param opts InvokeAiOpts
 function config.setup(opts)
   if opts == nil then
@@ -23,6 +25,7 @@ function config.setup(opts)
       config.key = key_value
     end
   end
+  config.provider_opts = opts.provider_opts
 end
 
 return config
