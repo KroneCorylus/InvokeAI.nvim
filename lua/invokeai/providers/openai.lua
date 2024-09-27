@@ -1,3 +1,7 @@
+---@module "invokeai.providers.openai"
+local defaults = {
+  model = "gpt-4o-mini"
+}
 local openai = {}
 
 ---@alias message {role:string, content:string }
@@ -18,7 +22,7 @@ end
 function openai.get_payload(data, _context)
   local filetype = _context.filetype or ""
   return {
-    model = "gpt-4o-mini",
+    model = openai.model,
     messages = {
       {
         role = "system",
@@ -37,7 +41,7 @@ end
 function openai.send(payload, ctx)
   require("plenary.curl").post("https://api.openai.com/v1/chat/completions", {
     body = vim.json.encode(payload),
-    headers = get_headers(),
+    headers = openai.get_headers(),
     callback = function(response)
       local body = vim.json.decode(response.body);
       vim.schedule(function()
@@ -48,7 +52,11 @@ function openai.send(payload, ctx)
 end
 
 function openai.setup(opts)
+  if not opts then
+    opts = {}
+  end
   openai.key = opts.key;
+  openai.model = opts.model or defaults.model;
 end
 
 return openai
