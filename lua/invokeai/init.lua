@@ -1,41 +1,11 @@
-local curl = require("plenary.curl")
+local openai = require("invokeai.providers.openai")
 local utils = require("invokeai.utils")
 local windows = require("invokeai.windows")
 local context = require("invokeai.context")
 local config = require("invokeai.config")
 
 
----@alias message {role:string, content:string }
 
---- @param data string
---- @param _context Context
---- @return { model: string, messages: message[] }
-local function get_payload(data, _context)
-  local filetype = _context.filetype or ""
-  return {
-    model = "gpt-4o-mini",
-    messages = {
-      {
-        role = "system",
-        content = "Respond only in valid " .. filetype .. " code"
-      },
-      {
-        role = "user",
-        content = data
-      }
-    }
-  }
-end
-
----Creates a table of HTTP headers.
---- @return table; table containing the HTTP headers.
-local function get_headers()
-  return {
-    ["Content-Type"] = "application/json",
-    ["Authorization"] =
-        "Bearer " .. config.key
-  }
-end
 
 --- Constructs a formatted prompt string with code in a specified language.
 --- @param prompt string|number; The prompt text or a buffer number to retrieve the text.
@@ -59,20 +29,6 @@ local function get_prompt(prompt, code, lang)
   return prompt
 end
 
---- @param payload table; body of the request
---- @param ctx Context; contexto
-local function send(payload, ctx)
-  curl.post("https://api.openai.com/v1/chat/completions", {
-    body = vim.json.encode(payload),
-    headers = get_headers(),
-    callback = function(response)
-      local body = vim.json.decode(response.body);
-      vim.schedule(function()
-        ctx.resolve_fn(body, ctx)
-      end)
-    end
-  })
-end
 
 --- @return string[], number, number; lines, start_row, end_row
 local function get_visual_selection()
@@ -144,8 +100,8 @@ invokeai.pre_prompt = function(prompt, options)
   local code = table.concat(_context.original_lines, "\n")
   print("CODE", code)
   local data = get_prompt(prompt, code, _context.filetype)
-  local payload = get_payload(data, _context)
-  send(payload, _context)
+  local payload = openai.get_payload(data, _context)
+  openai.send(payload, _context)
 end
 
 invokeai.popup = function(options)
@@ -183,8 +139,8 @@ invokeai.popup = function(options)
     { buffer = _context.prompt_buf, desc = 'close win' })
   vim.keymap.set({ 'n', 'i', 's' }, '<C-s>', function()
     local data = get_prompt(_context.prompt_buf, _context.code_buf);
-    local payload = get_payload(data, _context)
-    send(payload, _context)
+    local payload = openai.get_payload(data, _context)
+    openai.send(payload, _context)
     vim.api.nvim_del_autocmd(autocmd_prompt)
     vim.api.nvim_del_autocmd(autocmd_code)
     utils.close({ code_win, prompt_win })
