@@ -3,15 +3,6 @@ local utils = require("invokeai.utils")
 local windows = require("invokeai.windows")
 local context = require("invokeai.context")
 local config = require("invokeai.config")
--- local lol = prequire("pepe")
--- if lol == nil then
---   print("Pepe no esta presente")
--- end
-
-
--- for _, file in ipairs(luaFiles) do
---   print(file)
--- end
 
 
 ---@alias message {role:string, content:string }
