@@ -4,9 +4,6 @@ local windows = require("invokeai.windows")
 local context = require("invokeai.context")
 local config = require("invokeai.config")
 
-
-
-
 --- Constructs a formatted prompt string with code in a specified language.
 --- @param prompt string|number; The prompt text or a buffer number to retrieve the text.
 --- @param code string|number|nil; The code text or a buffer number to retrieve the text.
@@ -27,30 +24,6 @@ local function get_prompt(prompt, code, lang)
     return prompt .. "\n\n```" .. lang .. "\n" .. code .. "\n```"
   end
   return prompt
-end
-
-
---- @return string[], number, number; lines, start_row, end_row
-local function get_visual_selection()
-  local _, start_row, cscol, _ = unpack(vim.fn.getpos("'<"))
-  local _, end_row, cecol, _ = unpack(vim.fn.getpos("'>"))
-  local lines = vim.fn.getline(start_row, end_row)
-  if type(lines) == "string" then
-    lines = { lines }
-  end
-  if lines[1] == nil then
-    lines = { "" }
-  end
-  return lines, start_row, end_row
-end
-
-
-
-local function markvisual()
-  local ESC_FEEDKEY = vim.api.nvim_replace_termcodes('<ESC>', true, false, true)
-  vim.api.nvim_feedkeys(ESC_FEEDKEY, 'n', true)
-  vim.api.nvim_feedkeys('gv', 'x', false)
-  vim.api.nvim_feedkeys(ESC_FEEDKEY, 'n', true)
 end
 
 local invokeai = {}
@@ -86,9 +59,8 @@ invokeai.reset = function()
 end
 
 invokeai.pre_prompt = function(prompt, options)
-  markvisual()
   local _context = context.new(vim.api.nvim_get_current_buf(), options)
-  _context.original_lines, _context.start_row, _context.end_row = get_visual_selection()
+  _context.original_lines, _context.start_row, _context.end_row = utils.get_visual_selection()
   print("original_lines")
   local code = table.concat(_context.original_lines, "\n")
   print("CODE", code)
@@ -98,9 +70,8 @@ invokeai.pre_prompt = function(prompt, options)
 end
 
 invokeai.popup = function(options)
-  markvisual()
   local _context = context.new(vim.api.nvim_get_current_buf(), options)
-  _context.original_lines, _context.start_row, _context.end_row = get_visual_selection()
+  _context.original_lines, _context.start_row, _context.end_row = utils.get_visual_selection()
 
   vim.api.nvim_buf_set_lines(_context.code_buf, 0, -1, false, _context.original_lines)
   local code_win = vim.api.nvim_open_win(_context.code_buf, true, windows.get_code_win_conf())

@@ -1,3 +1,10 @@
+local function markvisual()
+  local ESC_FEEDKEY = vim.api.nvim_replace_termcodes('<ESC>', true, false, true)
+  vim.api.nvim_feedkeys(ESC_FEEDKEY, 'n', true)
+  vim.api.nvim_feedkeys('gv', 'x', false)
+  vim.api.nvim_feedkeys(ESC_FEEDKEY, 'n', true)
+end
+
 --- @module 'invokeai.utils'
 local utils = {}
 
@@ -58,7 +65,19 @@ utils.write_to_buffer = function(str, buf, start)
   vim.api.nvim_buf_set_lines(buf, start, -1, false, lines)
 end
 
-
-
+--- @return string[], number, number; lines, start_row, end_row
+function utils.get_visual_selection()
+  markvisual()
+  local _, start_row, cscol, _ = unpack(vim.fn.getpos("'<"))
+  local _, end_row, cecol, _ = unpack(vim.fn.getpos("'>"))
+  local lines = vim.fn.getline(start_row, end_row)
+  if type(lines) == "string" then
+    lines = { lines }
+  end
+  if lines[1] == nil then
+    lines = { "" }
+  end
+  return lines, start_row, end_row
+end
 
 return utils;
